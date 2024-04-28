@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Изменить пользователя</h1>
+<br/><br/>
+
+<form method="post" th:action="@{/edit/{id}(id=${user.id})}" th:object="${user}">
+    <div th:if="${user}">
+        <table>
+            <tr th:if="${user.id}">
+                <td>ID:</td>
+                <td th:utext="${user.id}">...</td>
+            </tr>
+            <tr>
+                <td><label for="name">Имя</label></td>
+                <td><input th:type="text" th:field="${user.name}" id="name"/></td>
+            </tr>
+            <tr>
+                <td><label for="surname">Фамилия</label></td>
+                <td><input th:type="text" th:field="${user.surname}" id="surname"/></td>
+            </tr>
+            <tr>
+                <td><label for="age">Возраст</label></td>
+                <td><input th:type="text" th:field="${user.age}" id="age"/></td>
+            </tr>
+        </table>
+    </div>
+    <input type="submit" value="Изменить"/>
+</form>
+<div th:if="${errorMessage}" th:utext="${errorMessage}" class="error">
+    ...
+</div>
+</body>
+</html>

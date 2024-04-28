@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Пользователь: </h1>
+<br/><br/>
+<div th:if="${user}">
+    <table>
+        <tr>
+            <td>ID:</td>
+            <td th:utext="${user.id}">...</td>
+        </tr>
+        <tr>
+            <td>Имя:</td>
+            <td th:utext="${user.name}">...</td>
+        </tr>
+        <tr>
+            <td>Фамилия:</td>
+            <td th:utext="${user.surname}">...</td>
+        </tr>
+        <tr>
+            <td>Возраст:</td>
+            <td th:utext="${user.age}">...</td>
+        </tr>
+    </table>
+    <br/><br/>
+    <div th:if="not ${allowDelete}">
+        <a th:href="@{/edit/{id}(id=${user.id})}">Изменить</a> |
+        <a th:href="@{/delete/{id}(id=${user.id})}">Удалить</a>
+    </div>
+    <form method="post" th:if="${allowDelete}" th:action="@{/delete/{id}(id=${user.id})}" th:object="${user}">
+        <input type="submit" value="Удалить"/>
+    </form>
+</div>
+<br/><br/>
+</div>
+<div th:if="${errorMessage}" th:utext="${errorMessage}" class="error">
+    ...
+</div>
+</body>
+</html>
