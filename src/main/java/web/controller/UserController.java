@@ -1,75 +1,38 @@
 package web.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.ui.ModelMap;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import web.model.User;
-import web.service.UserService;
 
+import web.service.UserServiceImpl;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
 
+    private final UserServiceImpl userServiceImpl;
 
-    private final UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userServiceImpl.findAll();
     }
 
-
-    @GetMapping(value = "/")
-    public String getAllUsers(ModelMap model) {
-        model.addAttribute("users", userService.getAllUsers());
-        return "users";
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        return userServiceImpl.save(user);
     }
 
-    @GetMapping("/create")
-    public String createUserForm(@ModelAttribute("user") User user) {
-        return "create";
+    @PutMapping({"/id"})
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+        return ResponseEntity.ok(userServiceImpl.update(id, user));
     }
 
-    @PostMapping("/create")
-    public String createUser(@ModelAttribute("user")User user) {
-        userService.saveUser(user);
-        return "redirect:/";
-    }
-
-    @GetMapping("/user/{id}")
-    public String getUser(Model model, @PathVariable("id") Long id) {
-        User user = userService.getUserById(id);
-        model.addAttribute("user", user);
-        return "one_user";
-    }
-
-    @GetMapping("/delete/{id}")
-    public String deleteUserForm(Model model, @PathVariable("id") Long id) {
-        User user = userService.getUserById(id);
-        model.addAttribute("allowDelete", true);
-        model.addAttribute("user", user);
-        return "one_user";
-    }
-
-    @PostMapping("/delete/{id}")
-    public String deleteUser(@PathVariable("id") int id) {
-        userService.removeUserById(id);
-        return "redirect:/";
-    }
-
-    @GetMapping("/edit/{id}")
-    public String editUserForm(Model model, @PathVariable("id") Long id) {
-        User user = userService.getUserById(id);
-        model.addAttribute("user", user);
-        return "edit";
-    }
-
-    @PostMapping("/edit/{id}")
-    public String editUser(@ModelAttribute("user") User user, @PathVariable("id") Long id) {
-        user.setId(id);
-        userService.updateUser(user);
-        return "redirect:/";
+    @DeleteMapping
+    public void deleteUser(@PathVariable Long id) {
+        userServiceImpl.delete(id);
     }
 }

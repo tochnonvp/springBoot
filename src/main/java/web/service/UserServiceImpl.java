@@ -1,53 +1,42 @@
 package web.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import web.dao.UserDao;
+import web.repository.UserRepository;
 import web.model.User;
 
 import java.util.List;
-
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private final UserRepository userRepository;
 
-    private final UserDao userDao;
-
-    @Autowired
-    public UserServiceImpl(UserDao userDao) {
-        this.userDao = userDao;
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
 
-
-    @Override
-    @Transactional(readOnly = true)
-    public User getUserById(long id) {
-        return userDao.getUserById(id);
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
     }
 
-    @Override
-    @Transactional
-    public void updateUser(User user) {
-        userDao.updateUser(user);
+    public User save(User user) {
+        return userRepository.save(user);
     }
 
-    @Override
-    @Transactional
-    public void removeUserById(long id) {
-        userDao.removeUserById(id);
+    public User update(Long id, User user) {
+        return userRepository.findById(id)
+                .map(existingUser -> {
+                    existingUser.setName(user.getName());
+                    existingUser.setSurname(user.getSurname());
+                    existingUser.setAge(user.getAge());
+                    return userRepository.save(existingUser);
+                }).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userDao.getAllUsers();
-    }
-
-    @Override
-    @Transactional
-    public void saveUser(User user) {
-        userDao.saveUser(user);
+    public void delete(Long id) {
+        userRepository.deleteById(id);
     }
 }
