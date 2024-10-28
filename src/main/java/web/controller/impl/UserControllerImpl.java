@@ -35,7 +35,7 @@ public class UserControllerImpl implements UserController {
 
     public ResponseEntity<ApiResponse<User>> createUser(@Valid @RequestBody User user,
                                                         BindingResult bindingResult) {
-        return userService.createUser(user, bindingResult);
+        return userService.save(user, bindingResult);
     }
 
     @PutMapping("/{id}")

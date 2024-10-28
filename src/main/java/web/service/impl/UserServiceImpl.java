@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User Not Found"));
     }
 
-    public ResponseEntity<ApiResponse<User>> createUser(User user, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse<User>> save(User user, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getAllErrors().stream()
                     .map(error -> error.getDefaultMessage())

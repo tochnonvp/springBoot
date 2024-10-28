@@ -35,4 +35,8 @@ public class User {
     @Min(value = 0, message = "Возраст должен быть не меньше 18 лет")
     @Max(value = 130, message = "Возраст должен быть не больше 60 лет")
     private int age;
+
+    @NotNull
+    @Column(name = "company_id")
+    private int companyId;
 }

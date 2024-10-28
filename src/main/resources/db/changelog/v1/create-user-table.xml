@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet id="27102024" author="alexey karaban">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="users"/>
+            </not>
+        </preConditions>
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="surname" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="age" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="94328102024" author="alexey karaban">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="fk_users_company"/>
+            </not>
+        </preConditions>
+        <!-- Добавляем столбец company_id в таблицу users -->
+        <addColumn tableName="users">
+            <column name="companyId" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <!-- Устанавливаем внешний ключ на таблицу companies -->
+        <addForeignKeyConstraint
+                baseTableName="users"
+                baseColumnNames="companyId"
+                referencedTableName="companies"
+                referencedColumnNames="id"
+                constraintName="fk_users_company"/>
+    </changeSet>
+</databaseChangeLog>

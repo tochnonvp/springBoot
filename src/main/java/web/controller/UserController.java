@@ -65,5 +65,3 @@ public interface UserController {
     boolean deleteUser(@PathVariable Long id);
 
 }
-
-
