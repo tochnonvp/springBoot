@@ -62,5 +62,4 @@ public interface UserController {
 
     @DeleteMapping("/{id}")
     boolean deleteUser(@PathVariable Long id);
-
 }
