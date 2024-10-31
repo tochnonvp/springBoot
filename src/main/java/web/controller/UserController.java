@@ -46,15 +46,14 @@ public interface UserController {
     })
 
     @PostMapping
-    ResponseEntity<web.respons.ApiResponse<User>> createUser(@Valid @RequestBody User user,
-                                                             BindingResult bindingResult);
+    ResponseEntity<User> createUser(@Valid @RequestBody User user, BindingResult bindingResult);
     @Operation(summary = "Change user", description = "Изменение пользователя")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Пользователь изменен"),
     })
 
     @PutMapping("/{id}")
-    ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user);
+    ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user, BindingResult bindingResult);
 
     @Operation(summary = "Delete user", description = "Удаление пользователя")
     @ApiResponses(value = {

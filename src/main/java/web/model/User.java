@@ -3,6 +3,7 @@ package web.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -18,15 +19,15 @@ public class User {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "name")
     @Size(min = 2, max = 10, message = "Размер имени должен быть в диапазоне от 2 до 10 символов")
-    @NotNull(message = "поле name не может быть пустым")
+    @NotBlank(message = "поле name не может быть пустым")
     private String name;
 
     @NotNull
-    @Size(min = 2, max = 10, message = "Размер имени должен быть в диапазоне от 2 до 10 символов")
+    @Size(min = 2, max = 10, message = "Размер фамилии должен быть в диапазоне от 2 до 10 символов")
     @Column(name = "surname")
     private String surname;
 
@@ -38,5 +39,5 @@ public class User {
 
     @NotNull
     @Column(name = "company_id")
-    private int companyId;
+    private Integer companyId;
 }

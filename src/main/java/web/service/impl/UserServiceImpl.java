@@ -1,14 +1,13 @@
 package web.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.BindingResult;
+import web.dto.UserDto;
+import web.exceptions.UserAlreadyExistsException;
 import web.exceptions.UserNotFoundException;
+import web.mapper.UserMapper;
 import web.model.User;
 import web.repository.UserRepository;
-import web.respons.ApiResponse;
 import web.service.UserService;
 
 import java.util.List;
@@ -19,6 +18,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public List<User> findAll() {
         return userRepository.findAll();
@@ -28,16 +28,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User Not Found"));
     }
 
-    public ResponseEntity<ApiResponse<User>> save(User user, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult.getAllErrors().stream()
-                    .map(error -> error.getDefaultMessage())
-                    .toList();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>(errors));
+    public User save(User user) {
+        if (userRepository.existsByName(user.getName())) {
+            throw new UserAlreadyExistsException("Пользователь с именем " + user.getName() + " уже существует");
         }
-
-        User savedUser = userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(savedUser));
+        return userRepository.save(user);
     }
 
     public User update(Long id, User user) {
@@ -46,8 +41,19 @@ public class UserServiceImpl implements UserService {
                     existingUser.setName(user.getName());
                     existingUser.setSurname(user.getSurname());
                     existingUser.setAge(user.getAge());
+                    existingUser.setCompanyId(user.getCompanyId());
                     return userRepository.save(existingUser);
                 }).orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+
+    public User patchUser(Long id, UserDto userDto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        userMapper.updateUserFromPatchDto(userDto, user);
+
+        return userRepository.save(user);
     }
 
     public boolean delete(Long id) {

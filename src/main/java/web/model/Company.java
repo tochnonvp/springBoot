@@ -19,8 +19,8 @@ public class Company {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    
+    private Integer id;
+
     @Column(name = "company", nullable = false)
-    private String groupsName;
+    private String company;
 }

@@ -31,17 +31,15 @@
                 <foreignKeyConstraintExists foreignKeyName="fk_users_company"/>
             </not>
         </preConditions>
-        <!-- Добавляем столбец company_id в таблицу users -->
         <addColumn tableName="users">
-            <column name="companyId" type="INT" defaultValue="0">
+            <column name="company_id" type="INT">
                 <constraints nullable="false"/>
             </column>
         </addColumn>
 
-        <!-- Устанавливаем внешний ключ на таблицу companies -->
         <addForeignKeyConstraint
                 baseTableName="users"
-                baseColumnNames="companyId"
+                baseColumnNames="company_id"
                 referencedTableName="companies"
                 referencedColumnNames="id"
                 constraintName="fk_users_company"/>
