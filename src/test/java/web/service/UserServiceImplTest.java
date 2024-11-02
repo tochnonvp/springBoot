@@ -1,67 +1,183 @@
 package web.service;
 
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import web.dto.UserDto;
+import web.exceptions.UserAlreadyExistsException;
+import web.exceptions.UserNotFoundException;
+import web.mapper.UserMapper;
 import web.model.User;
 import web.repository.UserRepository;
 import web.service.impl.UserServiceImpl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.times;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
- class UserServiceImplTest {
-
-    @Mock
-    private UserRepository userRepository;
+class UserServiceImplTest {
 
     @InjectMocks
     private UserServiceImpl userService;
 
-    User user1 = new User(1L, "John", "Doe", 30,2);
-    User user2 = new User(2L, "Jane", "Doe", 25,2);
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private UserMapper userMapper;
+
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        user = new User(1L, "John", "Doe", 30, 1); // Инициализация тестового пользователя
+    }
 
     @Test
-    @DisplayName("Проверка получения всех пользователей")
     void testFindAll() {
+        // Тестирует, что метод findAll возвращает список пользователей
+        when(userService.findAll()).thenReturn(Collections.singletonList(user));
 
-        List<User> expectedUsers = List.of(user1, user2);
+        List<User> users = userService.findAll();
 
-        when(userRepository.findAll()).thenReturn(expectedUsers);
-        List<User> actualUsers = userService.findAll();
-        assertEquals(expectedUsers, actualUsers, "Список пользователей должен совпадать с ожидаемым");
-        verify(userRepository, times(1)).findAll();
+        assertEquals(1, users.size());
+        assertEquals("John", users.get(0).getName());
+        verify(userRepository).findAll();
     }
 
     @Test
-    @DisplayName("Проверка получения пользователя по id")
-    void testFindUserById() {
-        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
+    void testFindById_UserExists() {
+        // Тестирует, что метод findById возвращает пользователя при его существовании
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        User actualUser = userService.findById(2L);
-        assertEquals(user2, actualUser);
-        verify(userRepository, times(1)).findById(2L);
+        User foundUser = userService.findById(1L);
+
+        assertEquals(user, foundUser);
     }
 
     @Test
-    @DisplayName("Проверка на добавление пользователя")
-    void testAddUser() {
-        when(userRepository.save(user1)).thenReturn(user1);
+    void testFindById_UserNotFound() {
+        // Тестирует, что метод findById выбрасывает исключение, если пользователь не найден
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        User savedUser = userRepository.save(user1);
+        assertThrows(UserNotFoundException.class, () -> userService.findById(1L));
+    }
 
-        assertNotNull(savedUser);
-        assertEquals(user1, savedUser);
-        verify(userRepository, times(1)).save(user1);
+    @Test
+    void testSave_UserSaved() {
+        // Тестирует, что метод save корректно сохраняет нового пользователя
+        when(userRepository.existsByName("John")).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        User savedUser = userService.save(user);
+
+        assertEquals(user, savedUser);
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void testSave_UserAlreadyExists() {
+        // Тестирует, что метод save выбрасывает исключение, если пользователь уже существует
+        when(userRepository.existsByName("John")).thenReturn(true);
+
+        assertThrows(UserAlreadyExistsException.class, () -> userService.save(user));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void testUpdate_UserExists() {
+        // Тестирует, что метод update корректно обновляет существующего пользователя
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        User updatedUser = userService.update(1L, user);
+
+        assertEquals(user, updatedUser);
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void testUpdate_UserNotFound() {
+        // Тестирует, что метод update выбрасывает исключение, если пользователь не найден
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> userService.update(1L, user));
+    }
+
+    @Test
+    void testPatchUser_UserExists() {
+        // Тестирует, что метод patchUser корректно обновляет поля существующего пользователя
+        UserDto userDto = UserDto.builder()
+                .name("Jane")
+                .surname("Smith")
+                .age(25)
+                .companyId(1)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userMapper.updateUserFromPatchDto(any(UserDto.class), any(User.class))).thenAnswer(invocation -> {
+            User existingUser = invocation.getArgument(1);
+            existingUser.setName(userDto.getName());
+            existingUser.setSurname(userDto.getSurname());
+            existingUser.setAge(userDto.getAge());
+            return null;
+        });
+
+        User patchedUser = userService.patchUser(1L, userDto);
+
+        assertEquals("Jane", patchedUser.getName());
+        verify(userRepository).save(patchedUser);
+    }
+
+    @Test
+    void testPatchUser_UserNotFound() {
+        // Тестирует, что метод patchUser выбрасывает исключение, если пользователь не найден
+        UserDto userDto = UserDto.builder()
+                .name("Jane")
+                .surname("Smith")
+                .age(25)
+                .companyId(1)
+                .build();
+
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> userService.patchUser(1L, userDto));
+    }
+
+    @Test
+    void testDelete_UserExists() {
+        // Тестирует, что метод delete корректно удаляет существующего пользователя
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        boolean result = userService.delete(1L);
+
+        assertTrue(result);
+        verify(userRepository).delete(user);
+    }
+
+    @Test
+    void testDelete_UserNotFound() {
+        // Тестирует, что метод delete не удаляет пользователя, если он не найден
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        boolean result = userService.delete(1L);
+
+        assertFalse(result);
+        verify(userRepository, never()).delete(any(User.class));
     }
 }
